@@ -26,7 +26,11 @@ If the user provides additional instructions (specific fidelity level, customiza
 
 Treat every target URL as durable project output, not as permission to replace whatever was built previously.
 
-Choose an `<app-root>` before extraction. For a single application, `<app-root>` is the repository root (`.`). If different origins need separate applications, require the user to provide or approve a prepared Next.js project root for each origin; verify each root builds independently, and never write one origin's output into another root.
+**Root Sub-Project Directory Rule**:
+Every cloned website MUST be placed into its own dedicated new project directory under the workspace root (e.g. `<repo-root>/projects/<site-slug>/`).
+- `<app-root>` defaults to `<repo-root>/projects/<site-slug>/`.
+- Inside `<app-root>`, the clone is a complete, self-contained Next.js project based on this template (containing its own `src/`, `public/`, `docs/`, and `package.json`), completely decoupled from the root template and from any other cloned sites.
+- Never write site-specific pages, components, or downloaded assets directly into the template's root `src/` or `public/` directories unless the user explicitly requests a single in-place root replacement.
 
 Then assign each target:
 
@@ -145,6 +149,23 @@ The spec file is not optional. It is not a nice-to-have. If you dispatch a build
 
 Every builder agent must verify `npx tsc --noEmit` passes before finishing. After merging worktrees, you verify `npm run build` passes. A broken build is never acceptable, even temporarily.
 
+### 10. Tailwind v4 Safety — No Dynamic Class Strings
+
+Never write dynamic template strings or interpolations inside arbitrary Tailwind utility class names, such as ``bg-[url('${VAR}')]`` or ``w-[${WIDTH}px]``. Tailwind CSS v4 uses a fast static extractor that scans source code without evaluating JavaScript; it extracts `${VAR}` as a literal string token, which causes Turbopack module resolution errors (`Can't resolve '${VAR}'`) during production builds (`npm run build`).
+- For dynamic asset URLs, ALWAYS use inline React styles: `style={{ backgroundImage: \`url(\${imageSrc})\` }}`.
+- For calculated dimensions, use inline styles or CSS custom properties.
+
+### 11. Next.js Image Optimization & Zero Layout Shift
+
+Extract both `naturalWidth` and `naturalHeight` during DOM inspection. When generating React components, prefer Next.js `<Image src={...} width={w} height={h} alt={...} />` over unadorned `<img>` tags. This eliminates Cumulative Layout Shift (CLS), avoids `@next/next/no-img-element` ESLint warnings, and enables automated responsive optimization.
+
+### 12. Decoupled Data Layer (Backend & API Ready)
+
+Never bury large content blocks, navigation menus, product lists, or article collections directly inside deeply nested JSX tags.
+- Extract structured content into typed TypeScript files under `src/data/<site-key>/<page-key>.ts` with explicit interfaces (e.g. `SiteConfig`, `NavigationItem`, `ArticlePost`).
+- Components should receive data via typed props or import from the structured data module.
+- This ensures clean separation of concerns, allowing developers to connect real databases (PostgreSQL, Prisma, Supabase) or REST/GraphQL APIs later without rewriting component markup.
+
 ## Phase 1: Reconnaissance
 
 Navigate to the target URL with browser MCP.
@@ -161,13 +182,15 @@ Extract these from the page before doing anything else:
 
 **Colors** — Extract the site's color palette from computed styles across the page. For a single-site app, merge the target's colors into `src/app/globals.css` without removing tokens required by existing routes. Map them to shadcn's token names (background, foreground, primary, muted, etc.) where they fit. In an approved combined multi-site app, use a route wrapper or scoped token namespace instead of replacing another site's global palette.
 
-**Favicons & Meta** — Download page/site SEO assets under the planned site asset namespace. Put truly app-global metadata in the root layout only when it applies to every route; otherwise export route-specific metadata from the destination page or a route layout.
+**Favicons & Meta (Complete SEO)** — Extract `<title>`, `<meta name="description">`, OpenGraph tags (`og:title`, `og:description`, `og:image`), Twitter cards, keywords, and canonical URLs. Download page/site SEO assets under the planned site asset namespace. Generate a type-safe Next.js `export const metadata: Metadata = { ... }` definition ready for `layout.tsx` or the destination `page.tsx`.
 
 **Global UI patterns** — Identify any site-wide CSS or JS: custom scrollbar hiding, scroll-snap on the page container, global keyframe animations, backdrop filters, gradients used as overlays, **smooth scroll libraries** (Lenis, Locomotive Scroll — check for `.lenis`, `.locomotive-scroll`, or custom scroll container classes). Merge truly shared behavior into `globals.css`; keep page-specific behavior scoped to the page so existing routes do not change unexpectedly.
 
 ### Mandatory Interaction Sweep
 
 This is a dedicated pass AFTER screenshots and BEFORE anything else. Its purpose is to discover every behavior on the page — many of which are invisible in a static screenshot.
+
+**Pre-Recon Step-Scroll (Lazy-Load Trigger):** Before capturing screenshots and asset inventories, perform a systematic top-to-bottom step scroll (e.g., 500px increments with 200ms delays, then scroll back to top). This triggers `IntersectionObserver` handlers, forces lazy-loaded images/videos to load, and ensures dynamically rendered DOM elements are fully initialized.
 
 **Scroll sweep:** Scroll the page slowly from top to bottom via browser MCP. At each section, pause and observe:
 - Does the header change appearance? Record the scroll position where it triggers.
@@ -471,12 +494,20 @@ Before dispatching ANY builder agent, verify you can check every box. If you can
 - [ ] All images in the section are identified (including overlays and layered compositions)
 - [ ] Responsive behavior is documented for at least desktop and mobile
 - [ ] Text content is verbatim from the site, not paraphrased
+- [ ] Structured content decoupled into typed models under `src/data/` rather than hardcoded in JSX
+- [ ] Image natural dimensions (`naturalWidth`/`naturalHeight`) captured for Next.js `<Image />` tags
+- [ ] Tailwind v4 safety verified: NO dynamic template literals in arbitrary classes (use inline `style={{ ... }}` for dynamic URLs)
+- [ ] SEO metadata (title, description, OpenGraph, favicon) captured for App Router metadata
 - [ ] The builder prompt is under ~150 lines of spec; if over, the section needs to be split
 
 ## What NOT to Do
 
 These are lessons from previous failed clones — each one cost hours of rework:
 
+- **Don't use dynamic template strings in Tailwind arbitrary classes (`bg-[url('${...}')]`).** Tailwind CSS v4 extracts classes with a fast static parser without executing JS. Literal `${...}` strings get passed to Turbopack, causing `Module not found` build errors. ALWAYS use inline styles (`style={{ backgroundImage: `url(...)` }}`) or CSS custom properties for dynamic URLs.
+- **Don't embed heavy data collections directly inside JSX.** Always separate data from presentation by creating typed data schemas in `src/data/` (or props interfaces). This makes the UI immediately ready for real backend / database / API integration.
+- **Don't skip step-scrolling before asset enumeration.** Many modern sites use `IntersectionObserver` or virtualized lists. If you don't step-scroll through the entire page first, lazy-loaded images and dynamic content won't be in the DOM.
+- **Don't use unadorned `<img>` tags when dimensions are known.** Use Next.js `<Image />` with `naturalWidth` and `naturalHeight` to eliminate layout shift and ESLint warnings.
 - **Don't build click-based tabs when the original is scroll-driven (or vice versa).** Determine the interaction model FIRST by scrolling before clicking. This is the #1 most expensive mistake — it requires a complete rewrite, not a CSS fix.
 - **Don't extract only the default state.** If there are tabs showing "Featured" on load, click Productivity, Creative, Lifestyle and extract each one's cards/content. If the header changes on scroll, capture styles at position 0 AND position 100+.
 - **Don't miss overlay/layered images.** A background watercolor + foreground UI mockup = 2 images. Check every container's DOM tree for multiple `<img>` elements and positioned overlays.

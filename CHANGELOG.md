@@ -5,10 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.1] - 2026-09-25
 
-### Security
-- Update Next.js and eslint-config-next to 16.3.5 with exact version pins, and refresh vulnerable transitive dependencies. Thanks to @atahan150 for the report in [#117](https://github.com/JCodesMore/ai-website-cloner-template/issues/117) and proposed fix in [#118](https://github.com/JCodesMore/ai-website-cloner-template/pull/118).
+### Added
+- **Standalone Project Isolation**: enforce separate sub-project generation under `projects/<site-slug>/` for every cloned target to prevent root template contamination
+- **Tailwind CSS v4 Build Safety**: strict prohibition on dynamic string interpolations inside arbitrary class names, enforcing inline React styles for dynamic assets to eliminate Turbopack `Module not found` errors
+- **Next.js Image CLS Optimization**: automatic extraction of `naturalWidth` and `naturalHeight` in the reconnaissance pipeline to power native `<Image />` tags and eliminate Cumulative Layout Shift
+- **Decoupled Data Architecture**: automatic extraction of copy, navigation, and lists into typed TypeScript schemas under `src/data/`, ready for backend database and API integration
+- **Automated Full SEO Extraction**: automated extraction of `<title>`, meta description, OpenGraph tags, favicons, and canonical links to generate App Router `export const metadata: Metadata`
+- **Step-Scroll Lazy Load Penetration**: automated top-to-bottom step scrolling before asset capture to trigger `IntersectionObserver` and virtualized assets
+- **Typed SVG Icon Center**: starter SVG icon registry at `src/components/icons.tsx`
+- **Clean Script**: added cross-platform `npm run clean` to wipe `.next` cache and temporary probe files
+
+### Changed
+- Pointed repository, homepage, and bug tracker metadata to `https://github.com/zhengwuji/ai-clone-web`
+- Rewrote `README.md` with complete bilingual tutorials, pipeline architecture diagrams, feature explanations, and Docker deployment guidelines
 
 ## [0.5.0] - 2026-09-17
 

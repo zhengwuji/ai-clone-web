@@ -39,6 +39,10 @@ A reusable template for reverse-engineering any website into a clean, modern Nex
 - **No personal aesthetic changes during emulation phase** — match 1:1 first, customize later
 - **Real content** — use actual text and assets from the target site, not placeholders
 - **Beauty-first** — every pixel matters
+- **Standalone Project Isolation** — every cloned website MUST be placed into a dedicated new project directory under the root (e.g. `projects/<site-name>/`), completely self-contained with its own components, assets, data, and routes, leaving the template root clean.
+- **Tailwind v4 Safety** — NEVER write dynamic string interpolations inside arbitrary Tailwind classes (e.g., `bg-[url('${VAR}')]`). Use inline React `style={{ backgroundImage: ... }}` or CSS variables to avoid Turbopack build failures.
+- **Decoupled Data Architecture** — separate page data, navigation, and lists into typed TypeScript schemas under `src/data/` instead of hardcoding raw data in JSX.
+- **Next.js Image CLS Prevention** — extract `naturalWidth` and `naturalHeight` to power `<Image />` components and eliminate Cumulative Layout Shift.
 
 ## Project Structure
 ```

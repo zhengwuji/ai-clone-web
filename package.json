@@ -1,17 +1,17 @@
 {
   "name": "ai-website-clone-template",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": true,
   "description": "Clone any website into a clean, modern Next.js codebase using AI coding agents",
   "author": "JCodesMore",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/JCodesMore/ai-website-cloner-template.git"
+    "url": "https://github.com/zhengwuji/ai-clone-web.git"
   },
-  "homepage": "https://github.com/JCodesMore/ai-website-cloner-template",
+  "homepage": "https://github.com/zhengwuji/ai-clone-web",
   "bugs": {
-    "url": "https://github.com/JCodesMore/ai-website-cloner-template/issues"
+    "url": "https://github.com/zhengwuji/ai-clone-web/issues"
   },
   "keywords": [
     "claude-code",
@@ -32,6 +32,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "clean": "node -e \"const fs = require('fs'); ['.next', '.tmp-crops', '.tmp-out.css', '.tmp-probe.cjs', '_pwtest.cjs'].forEach(p => fs.rmSync(p, {recursive: true, force: true}));\"",
     "check": "npm run lint && npm run typecheck && npm run build"
   },
   "dependencies": {

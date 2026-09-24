@@ -6,6 +6,9 @@ This guide outlines what to capture when inspecting a target website via Chrome 
 
 ## Phase 1: Visual Audit
 
+### Pre-Inspection Automation
+- [ ] **Step-by-step scroll** — scroll top-to-bottom in 500px increments to trigger `IntersectionObserver`, lazy loading, and dynamic DOM rendering.
+
 ### Screenshots to Capture
 - [ ] Every distinct page — desktop, tablet, mobile
 - [ ] Dark mode variants (if applicable)
@@ -15,6 +18,13 @@ This guide outlines what to capture when inspecting a target website via Chrome 
 - [ ] Empty states
 - [ ] Error states
 
+### SEO & Metadata to Extract
+- [ ] **Title tag** (`<title>`)
+- [ ] **Meta description** (`meta[name="description"]`)
+- [ ] **OpenGraph tags** (`og:title`, `og:description`, `og:image`, `og:url`)
+- [ ] **Favicons & icons** (favicon.ico, apple-touch-icon, manifest icons)
+- [ ] **Canonical URL** (`link[rel="canonical"]`)
+
 ### Design Tokens to Extract
 - [ ] **Colors** — background, text (primary/secondary/muted), accent, border, hover, error, success, warning
 - [ ] **Typography** — font family, sizes (h1-h6, body, caption, label), weights, line heights, letter spacing
@@ -22,7 +32,8 @@ This guide outlines what to capture when inspecting a target website via Chrome 
 - [ ] **Border radius** — buttons, cards, avatars, inputs
 - [ ] **Shadows/elevation** — card shadows, dropdown shadows, modal overlay
 - [ ] **Breakpoints** — when does the layout shift? (inspect with DevTools responsive mode)
-- [ ] **Icons** — which icon library? custom SVGs? sizes?
+- [ ] **Images & Dimensions** — `naturalWidth`, `naturalHeight`, `alt`, and `src` for Next.js `<Image />` optimization
+- [ ] **Icons** — which icon library? custom SVGs? sizes? (extracted into `src/components/icons.tsx`)
 - [ ] **Avatars** — sizes, shapes, fallback behavior
 - [ ] **Buttons** — all variants (primary, secondary, ghost, icon-only, danger)
 - [ ] **Inputs** — text fields, textareas, selects, checkboxes, toggles
@@ -64,10 +75,12 @@ For each distinct UI component, document:
 
 - [ ] **Framework** — React? Vue? Angular? Check `__NEXT_DATA__`, `__NUXT__`, `ng-version`
 - [ ] **CSS approach** — Tailwind (utility classes), CSS Modules, Styled Components, Emotion, vanilla CSS
+- [ ] **Tailwind v4 Safety** — Never use dynamic string interpolations in arbitrary class names (`bg-[url('${...}')]`); use inline `style={{ ... }}` for dynamic URLs
+- [ ] **Data Layer Decoupling** — Separate large lists, menus, and article mock data into typed TypeScript schemas in `src/data/`
 - [ ] **State management** — Redux (check DevTools), React Query, Zustand, Pinia
 - [ ] **API patterns** — REST, GraphQL (check network tab for `/graphql` requests)
 - [ ] **Font loading** — Google Fonts, self-hosted, system fonts
-- [ ] **Image strategy** — CDN, lazy loading, srcset, WebP/AVIF
+- [ ] **Image strategy** — Next.js `<Image />` component with `naturalWidth` and `naturalHeight`
 - [ ] **Animation library** — Framer Motion, GSAP, CSS transitions only
 
 ## Phase 5: Documentation Output
